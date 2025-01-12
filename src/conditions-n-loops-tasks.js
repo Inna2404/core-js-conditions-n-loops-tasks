@@ -155,59 +155,71 @@ function convertNumberToString(numberStr) {
 
   if (str[0] === '-') {
     isNegative = true;
-    str = str.substring(1);
+    str = '';
+    for (let k = 1; k < numberStr.length; k += 1) {
+      str += numberStr[k];
+    }
   }
+  const digitWords = {
+    0: 'zero',
+    1: 'one',
+    2: 'two',
+    3: 'three',
+    4: 'four',
+    5: 'five',
+    6: 'six',
+    7: 'seven',
+    8: 'eight',
+    9: 'nine',
+  };
 
-  for (let i = 0; i < str.length; i += 1) {
+  let i = 0;
+  while (i < str.length) {
     const char = str[i];
 
-    if (char === '.') {
-      result += ' point';
+    switch (char) {
+      case '.':
+      case ',':
+        result += ' point';
+        break;
+      case '0':
+      case '1':
+      case '2':
+      case '3':
+      case '4':
+      case '5':
+      case '6':
+      case '7':
+      case '8':
+      case '9':
+        result += ` ${digitWords[char]}`;
+        break;
+      default:
+        break;
     }
 
-    if (char === ',') {
-      result += ' point';
-    } else {
-      switch (char) {
-        case '0':
-          result += ' zero';
-          break;
-        case '1':
-          result += ' one';
-          break;
-        case '2':
-          result += ' two';
-          break;
-        case '3':
-          result += ' three';
-          break;
-        case '4':
-          result += ' four';
-          break;
-        case '5':
-          result += ' five';
-          break;
-        case '6':
-          result += ' six';
-          break;
-        case '7':
-          result += ' seven';
-          break;
-        case '8':
-          result += ' eight';
-          break;
-        case '9':
-          result += ' nine';
-          break;
-        default:
-          break;
-      }
-    }
+    i += 1;
   }
+
   if (isNegative) {
     result = `minus${result}`;
   }
-  return result.trim();
+
+  let start = 0;
+  while (start < result.length && result[start] === ' ') {
+    start += 1;
+  }
+
+  let end = result.length - 1;
+  while (end >= 0 && result[end] === ' ') {
+    end -= 1;
+  }
+  let finalResult = '';
+  for (let j = start; j <= end; j += 1) {
+    finalResult += result[j];
+  }
+
+  return finalResult;
 }
 
 /**
@@ -336,7 +348,50 @@ function getBalanceIndex(arr) {
  *          [10, 9,  8,  7]
  *        ]
  */
-function getSpiralMatrix(/* size */) {}
+function getSpiralMatrix(size) {
+  const matrix = [];
+  for (let i = 0; i < size; i += 1) {
+    matrix[i] = [];
+  }
+
+  let top = 0;
+  let bottom = size - 1;
+  let left = 0;
+  let right = size - 1;
+  let num = 1;
+
+  while (top <= bottom && left <= right) {
+    for (let i = left; i <= right; i += 1) {
+      matrix[top][i] = num;
+      num += 1;
+    }
+    top += 1;
+
+    for (let i = top; i <= bottom; i += 1) {
+      matrix[i][right] = num;
+      num += 1;
+    }
+    right -= 1;
+
+    if (top <= bottom) {
+      for (let i = right; i >= left; i -= 1) {
+        matrix[bottom][i] = num;
+        num += 1;
+      }
+      bottom -= 1;
+    }
+
+    if (left <= right) {
+      for (let i = bottom; i >= top; i -= 1) {
+        matrix[i][left] = num;
+        num += 1;
+      }
+      left += 1;
+    }
+  }
+
+  return matrix;
+}
 
 /**
  * Rotates a matrix by 90 degrees clockwise in place.
@@ -392,6 +447,7 @@ function sortByAsc(/* arr */) {
  */
 function shuffleChar(str, iterations) {
   let shuffleStr = str;
+
   for (let i = 0; i < iterations; i += 1) {
     let evenChars = '';
     let oddChars = '';
@@ -433,7 +489,16 @@ function getNearestBigger(number) {
     digits.push(num % 10);
     num = Math.floor(num / 10);
   }
-  digits.reverse();
+
+  let start = 0;
+  let end = digits.length - 1;
+  while (start < end) {
+    const temp = digits[start];
+    digits[start] = digits[end];
+    digits[end] = temp;
+    start += 1;
+    end -= 1;
+  }
 
   let i = digits.length - 2;
   while (i >= 0 && digits[i] >= digits[i + 1]) {
@@ -449,15 +514,23 @@ function getNearestBigger(number) {
     j -= 1;
   }
 
-  [digits[i], digits[j]] = [digits[j], digits[i]];
+  const temp = digits[i];
+  digits[i] = digits[j];
+  digits[j] = temp;
 
-  const left = digits.slice(0, i + 1);
-  const right = digits.slice(i + 1).sort((a, b) => a - b);
+  for (let k = i + 1; k < digits.length - 1; k += 1) {
+    for (let l = k + 1; l < digits.length; l += 1) {
+      if (digits[k] > digits[l]) {
+        const swap = digits[k];
+        digits[k] = digits[l];
+        digits[l] = swap;
+      }
+    }
+  }
 
-  const result = left.concat(right).reduce((acc, digit) => acc * 10 + digit, 0);
-
-  if (result <= number) {
-    return number;
+  let result = 0;
+  for (let m = 0; m < digits.length; m += 1) {
+    result = result * 10 + digits[m];
   }
 
   return result;
